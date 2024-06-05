@@ -1,0 +1,43 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        make install_windows_deps
+        make install_linux_musl_deps
+        make install_macos_deps
+
+    - name: install
+      run: make windows_x64
+        
+    - name: Package as Archive
+      run: |
+        cd target/release
+        tar czvf RustHound.tar.gz RustHound*
+
+    - name: Publish Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: my_project
+        path: target/release/RustHound.tar.gz
+
+    - name: Publish GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        draft: true
+        files: target/release/RustHound.tar.gz
+        # body_path: Changes.md
+          
